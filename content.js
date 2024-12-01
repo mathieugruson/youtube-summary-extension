@@ -41,6 +41,27 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
       };
   
+      // Function to copy text to the clipboard
+    // Function to copy text to the clipboard
+    const copyToClipboard = async (text) => {
+        try {
+        await navigator.clipboard.writeText(text);
+        console.log("Text successfully copied to clipboard.");
+        } catch (err) {
+        console.error("Failed to copy text to clipboard:", err);
+        }
+    };
+    
+    // Request the background script to focus the tab before copying
+    chrome.runtime.sendMessage({ action: "focusTab" }, (response) => {
+        if (response.success) {
+        console.log(response.message); // Tab is now focused
+        // Proceed with clipboard operation
+        copyToClipboard("Your text here");
+        } else {
+        console.error("Failed to focus tab.");
+        }
+    });
       // Function to wait for a button to appear and click it
       const waitForButtonAndClick = (selector, callback) => {
         const button = document.querySelector(selector);
@@ -80,7 +101,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                   setTimeout(() => {
                     const transcript = extractTranscript();
                     if (transcript) {
-                      sendResponse({ transcript });
+                      // Copy the transcript to the clipboard
+                      copyToClipboard(transcript);
+                      sendResponse({ success: true, message: "Transcript copied to clipboard." });
                     } else {
                       sendResponse({ error: "Transcript not found even after all steps." });
                     }
